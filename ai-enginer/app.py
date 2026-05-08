@@ -11,6 +11,10 @@ from keras.preprocessing.sequence import pad_sequences
 
 app = FastAPI(title="GlowMinder AI Engine")
 
+@app.get("/")
+def root():
+    return {"status": "ok", "service": "GlowMinder AI Engine"}
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 print("Loading AI Models...")
