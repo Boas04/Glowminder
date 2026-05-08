@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import pickle
 import numpy as np
+import os
 
 import keras
 from keras.models import Sequential
@@ -9,6 +10,8 @@ from keras.layers import Embedding, Bidirectional, LSTM, Dropout, Dense
 from keras.preprocessing.sequence import pad_sequences
 
 app = FastAPI(title="GlowMinder AI Engine")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 print("Loading AI Models...")
 
@@ -19,14 +22,14 @@ model = Sequential([
     Dense(4, activation='sigmoid')
 ])
 model.build(input_shape=(None, 50))
-model.load_weights('glowminder_bilstm_weights.weights.h5')
+model.load_weights(os.path.join(BASE_DIR, 'glowminder_bilstm_weights.weights.h5'))
 
 print("Model loaded successfully!")
 
-with open('tokenizer.pkl', 'rb') as f:
+with open(os.path.join(BASE_DIR, 'tokenizer.pkl'), 'rb') as f:
     tokenizer = pickle.load(f)
     
-with open('mlb.pkl', 'rb') as f:
+with open(os.path.join(BASE_DIR, 'mlb.pkl'), 'rb') as f:
     mlb = pickle.load(f)
 
 class SkincareInput(BaseModel):
