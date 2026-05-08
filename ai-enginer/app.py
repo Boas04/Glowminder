@@ -3,6 +3,8 @@ from pydantic import BaseModel
 import pickle
 import numpy as np
 import os
+import sys
+import traceback
 
 import keras
 from keras.models import Sequential
@@ -17,24 +19,29 @@ def root():
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-print("Loading AI Models...")
+try:
+    print("Loading AI Models...")
 
-model = Sequential([
-    Embedding(input_dim=3562, output_dim=100, input_length=50),
-    Bidirectional(LSTM(64)),
-    Dropout(0.3),
-    Dense(4, activation='sigmoid')
-])
-model.build(input_shape=(None, 50))
-model.load_weights(os.path.join(BASE_DIR, 'glowminder_bilstm_weights.weights.h5'))
+    model = Sequential([
+        Embedding(input_dim=3562, output_dim=100, input_length=50),
+        Bidirectional(LSTM(64)),
+        Dropout(0.3),
+        Dense(4, activation='sigmoid')
+    ])
+    model.build(input_shape=(None, 50))
+    model.load_weights(os.path.join(BASE_DIR, 'glowminder_bilstm_weights.weights.h5'))
 
-print("Model loaded successfully!")
+    print("Model loaded successfully!")
 
-with open(os.path.join(BASE_DIR, 'tokenizer.pkl'), 'rb') as f:
-    tokenizer = pickle.load(f)
-    
-with open(os.path.join(BASE_DIR, 'mlb.pkl'), 'rb') as f:
-    mlb = pickle.load(f)
+    with open(os.path.join(BASE_DIR, 'tokenizer.pkl'), 'rb') as f:
+        tokenizer = pickle.load(f)
+
+    with open(os.path.join(BASE_DIR, 'mlb.pkl'), 'rb') as f:
+        mlb = pickle.load(f)
+
+except Exception:
+    traceback.print_exc(file=sys.stderr)
+    raise
 
 class SkincareInput(BaseModel):
     ingredients: str 
