@@ -34,4 +34,31 @@ suggestions to temperature, humidity, and UV index.
 **Frontend**
 - React + Vite
 
-**Bac
+**Backend**
+- Node.js & Express
+- MySQL, Prisma/Sequelize
+
+**External APIs**
+- OpenWeatherMap API / BMKG API
+
+---
+
+## 👨‍💻 Team
+
+| Role | Name |
+|------|------|
+| AI Engineer | Abner Boas Paskah Parningotan Gultom |
+| AI Engineer | Mesak Mychart Elsafan Purba |
+| Data Scientist | Luthfiyyah Adiska |
+| Data Scientist | Fajar Istiqomah |
+| Full-Stack Developer | I Gusti Ngurah Adhiwangsa Devananda |
+| Full-Stack Developer | I Gede Adrian Satria Pratama S |
+
+**Institution:** Universitas Pancasila  
+**Program:** Coding Camp 2026 powered by DBS Foundation
+
+---
+
+## 📌 Status
+
+🚧 Currently in active development (Feb – Jul 2026)
