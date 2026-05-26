@@ -1,136 +1,337 @@
-let nextId = 1;
-const products = [];
+const db = require("../config/db");
 
-const getAllProducts = (req, res) => {
-  return res.json({
-    success: true,
-    data: products,
-  });
+const USAGE_TIME_VALUES = ["morning", "night", "special_treatment"];
+
+const parseIdParam = (req, res) => {
+  const id = Number.parseInt(req.params.id, 10);
+  if (Number.isNaN(id)) {
+    res.status(400).json({
+      success: false,
+      message: "id must be a number",
+    });
+    return null;
+  }
+
+  return id;
 };
 
-const createProduct = (req, res) => {
-  const { name, price, description } = req.body || {};
+const pickString = (value) => {
+  if (value === undefined || value === null) {
+    return null;
+  }
 
-  if (!name || price === undefined) {
+  if (typeof value !== "string") {
+    return String(value);
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
+const normalizeUsageTime = (value) => {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  if (!USAGE_TIME_VALUES.includes(value)) {
+    return { error: "usage_time is invalid" };
+  }
+
+  return value;
+};
+
+const normalizeForeignKey = (value, fieldName) => {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  const numericValue = Number.parseInt(value, 10);
+  if (Number.isNaN(numericValue) || numericValue <= 0) {
+    return { error: `${fieldName} must be a positive number` };
+  }
+
+  return numericValue;
+};
+
+const getAllProducts = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      "SELECT id, name, usage_time, description, ingredients, category_id, brand_id, created_at FROM products ORDER BY id DESC"
+    );
+
+    return res.json({
+      success: true,
+      data: rows,
+    });
+  } catch (err) {
+    console.error("Failed to fetch products:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "failed to fetch products",
+    });
+  }
+};
+
+const createProduct = async (req, res) => {
+  const { name, usage_time, description, ingredients, category_id, brand_id } =
+    req.body || {};
+
+  const normalizedName = pickString(name);
+  if (!normalizedName) {
     return res.status(400).json({
       success: false,
-      message: "name and price are required",
+      message: "name is required",
     });
   }
 
-  const numericPrice = Number.parseFloat(price);
-  if (Number.isNaN(numericPrice)) {
+  const normalizedUsageTime = normalizeUsageTime(usage_time);
+  if (normalizedUsageTime && normalizedUsageTime.error) {
     return res.status(400).json({
       success: false,
-      message: "price must be a valid number",
+      message: normalizedUsageTime.error,
     });
   }
 
-  const product = {
-    id: nextId++,
-    name,
-    price: numericPrice,
-    description: description || "",
+  const normalizedIngredients = pickString(ingredients);
+  if (!normalizedIngredients) {
+    return res.status(400).json({
+      success: false,
+      message: "ingredients are required",
+    });
+  }
+
+  const normalizedCategoryId = normalizeForeignKey(category_id, "category_id");
+  if (normalizedCategoryId && normalizedCategoryId.error) {
+    return res.status(400).json({
+      success: false,
+      message: normalizedCategoryId.error,
+    });
+  }
+
+  const normalizedBrandId = normalizeForeignKey(brand_id, "brand_id");
+  if (normalizedBrandId && normalizedBrandId.error) {
+    return res.status(400).json({
+      success: false,
+      message: normalizedBrandId.error,
+    });
+  }
+
+  const payload = {
+    name: normalizedName,
+    usage_time: normalizedUsageTime || "morning",
+    description: pickString(description),
+    ingredients: normalizedIngredients,
+    category_id: normalizedCategoryId || null,
+    brand_id: normalizedBrandId || null,
   };
 
-  products.push(product);
+  try {
+    const [result] = await db.query(
+      "INSERT INTO products (name, usage_time, description, ingredients, category_id, brand_id) VALUES (?, ?, ?, ?, ?, ?)",
+      [
+        payload.name,
+        payload.usage_time,
+        payload.description,
+        payload.ingredients,
+        payload.category_id,
+        payload.brand_id,
+      ]
+    );
 
-  return res.status(201).json({
-    success: true,
-    data: product,
-  });
+    const [rows] = await db.query(
+      "SELECT id, name, usage_time, description, ingredients, category_id, brand_id, created_at FROM products WHERE id = ?",
+      [result.insertId]
+    );
+
+    return res.status(201).json({
+      success: true,
+      data: rows[0],
+    });
+  } catch (err) {
+    console.error("Failed to create product:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "failed to create product",
+    });
+  }
 };
 
-const getProductById = (req, res) => {
-  const id = Number.parseInt(req.params.id, 10);
-  if (Number.isNaN(id)) {
-    return res.status(400).json({
-      success: false,
-      message: "id must be a number",
-    });
+const getProductById = async (req, res) => {
+  const id = parseIdParam(req, res);
+  if (id === null) {
+    return;
   }
 
-  const product = products.find((item) => item.id === id);
-  if (!product) {
-    return res.status(404).json({
-      success: false,
-      message: "product not found",
-    });
-  }
+  try {
+    const [rows] = await db.query(
+      "SELECT id, name, usage_time, description, ingredients, category_id, brand_id, created_at FROM products WHERE id = ?",
+      [id]
+    );
 
-  return res.json({
-    success: true,
-    data: product,
-  });
-};
-
-const updateProduct = (req, res) => {
-  const id = Number.parseInt(req.params.id, 10);
-  if (Number.isNaN(id)) {
-    return res.status(400).json({
-      success: false,
-      message: "id must be a number",
-    });
-  }
-
-  const product = products.find((item) => item.id === id);
-  if (!product) {
-    return res.status(404).json({
-      success: false,
-      message: "product not found",
-    });
-  }
-
-  const { name, price, description } = req.body || {};
-
-  if (name !== undefined) {
-    product.name = name;
-  }
-
-  if (price !== undefined) {
-    const numericPrice = Number.parseFloat(price);
-    if (Number.isNaN(numericPrice)) {
-      return res.status(400).json({
+    if (rows.length === 0) {
+      return res.status(404).json({
         success: false,
-        message: "price must be a valid number",
+        message: "product not found",
       });
     }
-    product.price = numericPrice;
+
+    return res.json({
+      success: true,
+      data: rows[0],
+    });
+  } catch (err) {
+    console.error("Failed to fetch product:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "failed to fetch product",
+    });
+  }
+};
+
+const updateProduct = async (req, res) => {
+  const id = parseIdParam(req, res);
+  if (id === null) {
+    return;
+  }
+
+  const { name, usage_time, description, ingredients, category_id, brand_id } =
+    req.body || {};
+
+  const updates = {};
+
+  if (name !== undefined) {
+    const normalizedName = pickString(name);
+    if (!normalizedName) {
+      return res.status(400).json({
+        success: false,
+        message: "name cannot be empty",
+      });
+    }
+    updates.name = normalizedName;
+  }
+
+  if (ingredients !== undefined) {
+    const normalizedIngredients = pickString(ingredients);
+    if (!normalizedIngredients) {
+      return res.status(400).json({
+        success: false,
+        message: "ingredients cannot be empty",
+      });
+    }
+    updates.ingredients = normalizedIngredients;
+  }
+
+  if (usage_time !== undefined) {
+    const normalizedUsageTime = normalizeUsageTime(usage_time);
+    if (normalizedUsageTime && normalizedUsageTime.error) {
+      return res.status(400).json({
+        success: false,
+        message: normalizedUsageTime.error,
+      });
+    }
+    updates.usage_time = normalizedUsageTime || "morning";
   }
 
   if (description !== undefined) {
-    product.description = description;
+    updates.description = pickString(description);
   }
 
-  return res.json({
-    success: true,
-    data: product,
-  });
-};
+  if (category_id !== undefined) {
+    const normalizedCategoryId = normalizeForeignKey(category_id, "category_id");
+    if (normalizedCategoryId && normalizedCategoryId.error) {
+      return res.status(400).json({
+        success: false,
+        message: normalizedCategoryId.error,
+      });
+    }
+    updates.category_id = normalizedCategoryId || null;
+  }
 
-const deleteProduct = (req, res) => {
-  const id = Number.parseInt(req.params.id, 10);
-  if (Number.isNaN(id)) {
+  if (brand_id !== undefined) {
+    const normalizedBrandId = normalizeForeignKey(brand_id, "brand_id");
+    if (normalizedBrandId && normalizedBrandId.error) {
+      return res.status(400).json({
+        success: false,
+        message: normalizedBrandId.error,
+      });
+    }
+    updates.brand_id = normalizedBrandId || null;
+  }
+
+  const updateKeys = Object.keys(updates);
+  if (updateKeys.length === 0) {
     return res.status(400).json({
       success: false,
-      message: "id must be a number",
+      message: "no fields to update",
     });
   }
 
-  const index = products.findIndex((item) => item.id === id);
-  if (index === -1) {
-    return res.status(404).json({
+  const setClause = updateKeys.map((key) => `${key} = ?`).join(", ");
+  const values = updateKeys.map((key) => updates[key]);
+
+  try {
+    const [result] = await db.query(
+      `UPDATE products SET ${setClause} WHERE id = ?`,
+      [...values, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "product not found",
+      });
+    }
+
+    const [rows] = await db.query(
+      "SELECT id, name, usage_time, description, ingredients, category_id, brand_id, created_at FROM products WHERE id = ?",
+      [id]
+    );
+
+    return res.json({
+      success: true,
+      data: rows[0],
+    });
+  } catch (err) {
+    console.error("Failed to update product:", err.message);
+    return res.status(500).json({
       success: false,
-      message: "product not found",
+      message: "failed to update product",
     });
   }
+};
 
-  const removed = products.splice(index, 1)[0];
+const deleteProduct = async (req, res) => {
+  const id = parseIdParam(req, res);
+  if (id === null) {
+    return;
+  }
 
-  return res.json({
-    success: true,
-    data: removed,
-  });
+  try {
+    const [rows] = await db.query(
+      "SELECT id, name, usage_time, description, ingredients, category_id, brand_id, created_at FROM products WHERE id = ?",
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "product not found",
+      });
+    }
+
+    await db.query("DELETE FROM products WHERE id = ?", [id]);
+
+    return res.json({
+      success: true,
+      data: rows[0],
+    });
+  } catch (err) {
+    console.error("Failed to delete product:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "failed to delete product",
+    });
+  }
 };
 
 module.exports = {

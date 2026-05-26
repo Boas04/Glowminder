@@ -1,6 +1,70 @@
 const db = require("../config/db");
 const { getCurrentWeather } = require("../services/weatherService");
 
+const parseIdParam = (req, res) => {
+  const id = Number.parseInt(req.params.id, 10);
+  if (Number.isNaN(id)) {
+    res.status(400).json({
+      success: false,
+      message: "id must be a number",
+    });
+    return null;
+  }
+
+  return id;
+};
+
+const getWeatherLogs = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      "SELECT id, temperature, humidity, uv_index, weather_condition, wind_speed, location_name, created_at FROM weather_logs ORDER BY id DESC"
+    );
+
+    return res.json({
+      success: true,
+      data: rows,
+    });
+  } catch (err) {
+    console.error("Failed to fetch weather logs:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "failed to fetch weather logs",
+    });
+  }
+};
+
+const getWeatherLogById = async (req, res) => {
+  const id = parseIdParam(req, res);
+  if (id === null) {
+    return;
+  }
+
+  try {
+    const [rows] = await db.query(
+      "SELECT id, temperature, humidity, uv_index, weather_condition, wind_speed, location_name, created_at FROM weather_logs WHERE id = ?",
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "weather log not found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: rows[0],
+    });
+  } catch (err) {
+    console.error("Failed to fetch weather log:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "failed to fetch weather log",
+    });
+  }
+};
+
 const getCurrentWeatherHandler = async (req, res) => {
   try {
     const { lat, lon } = req.query;
@@ -38,7 +102,7 @@ const getCurrentWeatherHandler = async (req, res) => {
       });
     }
 
-    await db.execute(
+    const [result] = await db.query(
       "INSERT INTO weather_logs (temperature, humidity, uv_index, weather_condition, wind_speed, location_name) VALUES (?, ?, ?, ?, ?, ?)",
       [
         temperature,
@@ -50,10 +114,15 @@ const getCurrentWeatherHandler = async (req, res) => {
       ]
     );
 
+    const [rows] = await db.query(
+      "SELECT id, temperature, humidity, uv_index, weather_condition, wind_speed, location_name, created_at FROM weather_logs WHERE id = ?",
+      [result.insertId]
+    );
+
     return res.json({
       success: true,
       message: "Weather data fetched successfully",
-      data: {
+      data: rows[0] || {
         temperature,
         humidity,
         uv_index: uvIndex,
@@ -63,6 +132,7 @@ const getCurrentWeatherHandler = async (req, res) => {
       },
     });
   } catch (err) {
+    console.error("Failed to fetch weather data:", err.message);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch weather data",
@@ -72,4 +142,6 @@ const getCurrentWeatherHandler = async (req, res) => {
 
 module.exports = {
   getCurrentWeatherHandler,
+  getWeatherLogs,
+  getWeatherLogById,
 };
