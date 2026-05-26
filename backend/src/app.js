@@ -1,6 +1,7 @@
 const express = require("express");
 
 const productRoutes = require("./routes/productRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 const weatherRoutes = require("./routes/weatherRoutes");
 
 const app = express();
@@ -16,6 +17,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/product", productRoutes);
+app.use("/api/ai", aiRoutes);
 app.use("/api/weather", weatherRoutes);
 
 module.exports = app;
