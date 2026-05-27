@@ -35,8 +35,7 @@ export function useSkincareRecommendation({ weather, products }) {
           humidity,
         }
 
-        // --- Tambahkan alert untuk menampilkan payload yang dikirim ---
-        alert("Mengirim request ke AI dengan payload:\n" + JSON.stringify(payload, null, 2))
+        console.log("Mengirim request ke AI dengan payload:", payload)
 
         const data = await getSkincareRecommendation(payload)
         setRecommendation(data)
