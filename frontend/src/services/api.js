@@ -22,11 +22,29 @@ api.interceptors.response.use(
 
 // ─── PRODUCTS (mock-ready) ────────────────────────────────────
 export const productAPI = {
-  getAll:   () => api.get('/products'),
-  create:   (data) => api.post('/products', data),
-  update:   (id, data) => api.put(`/products/${id}`, data),
-  remove:   (id) => api.delete(`/products/${id}`),
-  classify: (id) => api.post(`/products/${id}/classify`),
+  getAll:   () => api.get('/product'),
+  create:   (data) => api.post('/product', data),
+  update:   (id, data) => api.put(`/product/${id}`, data),
+  remove:   (id) => api.delete(`/product/${id}`),
+  classify: (id) => api.post(`/product/${id}/classify`),
+}
+
+// ─── CATEGORIES ───────────────────────────────────────────────
+export const categoryAPI = {
+  getAll:   () => api.get('/categories'),
+  getById:  (id) => api.get(`/categories/${id}`),
+  create:   (data) => api.post('/categories', data),
+  update:   (id, data) => api.put(`/categories/${id}`, data),
+  remove:   (id) => api.delete(`/categories/${id}`),
+}
+
+// ─── BRANDS ───────────────────────────────────────────────────
+export const brandAPI = {
+  getAll:   () => api.get('/brands'),
+  getById:  (id) => api.get(`/brands/${id}`),
+  create:   (data) => api.post('/brands', data),
+  update:   (id, data) => api.put(`/brands/${id}`, data),
+  remove:   (id) => api.delete(`/brands/${id}`),
 }
 
 // ─── REMINDERS (mock-ready) ───────────────────────────────────
@@ -37,17 +55,13 @@ export const reminderAPI = {
   toggle: (id) => api.patch(`/reminders/${id}/toggle`),
 }
 
-// ─── RAILWAY AI – Skincare Recommendations ────────────────────
-// POST /get-reminder  { ingredients, uv_index, humidity }
-// ingredients diambil dari daftar produk user (semua ingredients digabung)
+// ─── AI – Skincare Recommendations ────────────────────
 export async function getSkincareRecommendation({ ingredients, uv_index, humidity }) {
-  const res = await fetch(`${RAILWAY_URL}/get-reminder`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ingredients, uv_index, humidity }),
-  })
-  if (!res.ok) throw new Error('Gagal mendapat rekomendasi AI')
-  return res.json()
+  const res = await api.post('/ai/reminder', { ingredients, uv_index, humidity })
+  if (res.data && !res.data.success && res.data.message) {
+    throw new Error(res.data.message)
+  }
+  return res.data.data
 }
 
 export default api

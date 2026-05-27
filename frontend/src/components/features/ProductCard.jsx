@@ -1,6 +1,5 @@
 // components/features/ProductCard.jsx
 import { useState } from 'react'
-import { PRODUCT_CATEGORIES } from '../../utils/mockData'
 
 const CATEGORY_ICONS = {
   cleanser: '🫧', toner: '💧', serum: '✨', moisturizer: '🧴',
@@ -8,12 +7,15 @@ const CATEGORY_ICONS = {
   treatment: '💊', other: '📦',
 }
 
-export default function ProductCard({ product, onEdit, onDelete, onClassify }) {
+export default function ProductCard({ product, brand, category, onEdit, onDelete, onClassify }) {
   const [deleting,   setDeleting]   = useState(false)
   const [classifying,setClassifying]= useState(false)
 
-  const catIcon  = CATEGORY_ICONS[product.category] || '📦'
-  const catLabel = PRODUCT_CATEGORIES.find(c => c.value === product.category)?.label || product.category
+  // fallback to generic icon if unknown
+  const catName = category?.name?.toLowerCase() || ''
+  const catIcon  = CATEGORY_ICONS[catName] || '📦'
+  const catLabel = category ? category.name : 'Unknown'
+  const brandName = brand ? brand.name : 'Unknown Brand'
 
   const handleDelete = async () => {
     if (!confirm(`Hapus "${product.name}"?`)) return
@@ -53,7 +55,7 @@ export default function ProductCard({ product, onEdit, onDelete, onClassify }) {
           <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--gray-800)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {product.name}
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--gray-400)', marginTop: 2 }}>{product.brand}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--gray-400)', marginTop: 2 }}>{brandName}</div>
         </div>
         <span className="badge" style={{
           background: product.in_stock ? '#d1fae5' : '#fee2e2',
@@ -67,21 +69,27 @@ export default function ProductCard({ product, onEdit, onDelete, onClassify }) {
       {/* Tags */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: '0.875rem' }}>
         <span className="badge badge-pink" style={{ fontSize: '0.7rem' }}>{catLabel}</span>
-        {product.usage_time?.map(t => (
-          <span key={t} className="badge badge-lavender" style={{ fontSize: '0.7rem' }}>
-            {t === 'morning' ? '🌅 Pagi' : t === 'night' ? '🌙 Malam' : '✨ Khusus'}
+        {product.usage_time && (
+          <span className="badge badge-lavender" style={{ fontSize: '0.7rem' }}>
+            {product.usage_time === 'morning' ? '🌅 Pagi' : product.usage_time === 'night' ? '🌙 Malam' : '✨ Khusus'}
           </span>
-        ))}
+        )}
       </div>
+      
+      {product.ingredients && (
+        <div style={{ fontSize: '0.7rem', color: 'var(--gray-500)', marginBottom: '0.875rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          <strong>Ingredients:</strong> {product.ingredients}
+        </div>
+      )}
 
-      {product.notes && (
+      {product.description && (
         <p style={{
           fontSize: '0.75rem', color: 'var(--gray-500)',
           background: 'rgba(255,240,245,0.6)',
           borderRadius: 8, padding: '0.4rem 0.65rem',
           marginBottom: '0.875rem', fontStyle: 'italic',
           borderLeft: '2px solid var(--pink-200)',
-        }}>{product.notes}</p>
+        }}>{product.description}</p>
       )}
 
       {/* Actions */}

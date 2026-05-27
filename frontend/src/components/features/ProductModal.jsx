@@ -1,30 +1,32 @@
 // components/features/ProductModal.jsx
 import { useState } from 'react'
-import { PRODUCT_CATEGORIES, USAGE_TIMES } from '../../utils/mockData'
+import { USAGE_TIMES } from '../../utils/mockData'
+import { useCategories } from '../../hooks/useCategories'
+import { useBrands } from '../../hooks/useBrands'
 
 const labelStyle = { fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-600)', display: 'block', marginBottom: 6 }
 
 export default function ProductModal({ product, onClose, onSave }) {
   const isEdit = Boolean(product?.id)
+  const { categories } = useCategories()
+  const { brands } = useBrands()
+
   const [form, setForm] = useState({
-    name: '', brand: '', category: 'serum',
-    usage_time: ['morning'], in_stock: true, notes: '',
+    name: '', brand_id: '', category_id: '', ingredients: '',
+    usage_time: 'morning', in_stock: true, description: '',
     ...product,
   })
   const [saving, setSaving] = useState(false)
 
-  const toggleUsage = (val) => setForm(prev => ({
-    ...prev,
-    usage_time: prev.usage_time.includes(val)
-      ? prev.usage_time.filter(t => t !== val)
-      : [...prev.usage_time, val],
-  }))
-
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.name.trim()) return
+    if (!form.name.trim() || !form.ingredients.trim()) return
     setSaving(true)
-    await onSave(form)
+    await onSave({
+      ...form,
+      brand_id: form.brand_id ? parseInt(form.brand_id) : null,
+      category_id: form.category_id ? parseInt(form.category_id) : null,
+    })
     setSaving(false)
     onClose()
   }
@@ -65,18 +67,32 @@ export default function ProductModal({ product, onClose, onSave }) {
               placeholder="Contoh: Niacinamide 10%" required />
           </div>
           <div>
-            <label style={labelStyle}>Brand</label>
-            <input className="input" value={form.brand} onChange={e => setForm({ ...form, brand: e.target.value })}
-              placeholder="Contoh: The Ordinary" />
+            <label style={labelStyle}>Ingredients *</label>
+            <textarea className="input" value={form.ingredients} onChange={e => setForm({ ...form, ingredients: e.target.value })}
+              placeholder="Contoh: aqua, glycerin, niacinamide" required rows={2} style={{ resize: 'vertical' }} />
           </div>
-          <div>
-            <label style={labelStyle}>Kategori</label>
-            <div className="select-wrapper" style={{ width: '100%' }}>
-              <select className="input" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-                {PRODUCT_CATEGORIES.map(c => (
-                  <option key={c.value} value={c.value}>{c.label}</option>
-                ))}
-              </select>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Brand</label>
+              <div className="select-wrapper">
+                <select className="input" value={form.brand_id || ''} onChange={e => setForm({ ...form, brand_id: e.target.value })}>
+                  <option value="">Pilih Brand</option>
+                  {brands.map(b => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Kategori</label>
+              <div className="select-wrapper">
+                <select className="input" value={form.category_id || ''} onChange={e => setForm({ ...form, category_id: e.target.value })}>
+                  <option value="">Pilih Kategori</option>
+                  {categories.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -84,9 +100,9 @@ export default function ProductModal({ product, onClose, onSave }) {
             <label style={labelStyle}>Waktu Penggunaan</label>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {USAGE_TIMES.map(({ value, label }) => {
-                const active = form.usage_time.includes(value)
+                const active = form.usage_time === value
                 return (
-                  <button key={value} type="button" onClick={() => toggleUsage(value)} style={{
+                  <button key={value} type="button" onClick={() => setForm({ ...form, usage_time: value })} style={{
                     padding: '0.45rem 1rem',
                     border: `1.5px solid ${active ? 'var(--pink-400)' : 'var(--gray-200)'}`,
                     borderRadius: 'var(--radius-full)',
@@ -111,8 +127,8 @@ export default function ProductModal({ product, onClose, onSave }) {
           </div>
 
           <div>
-            <label style={labelStyle}>Catatan (opsional)</label>
-            <textarea className="input" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
+            <label style={labelStyle}>Deskripsi (opsional)</label>
+            <textarea className="input" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
               placeholder="Catatan tentang produk ini..." rows={3}
               style={{ resize: 'vertical', minHeight: 80 }} />
           </div>

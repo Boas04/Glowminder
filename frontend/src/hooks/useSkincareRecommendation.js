@@ -28,12 +28,17 @@ export function useSkincareRecommendation({ weather, products }) {
 
         const uv_index = weather.uv_index ?? 5.0    // fallback jika OWM free tier tidak punya UV
         const humidity = weather.humidity ?? 70
-
-        const data = await getSkincareRecommendation({
+        
+        const payload = {
           ingredients: ingredientsList || 'aqua, ceramide, niacinamide',
           uv_index,
           humidity,
-        })
+        }
+
+        // --- Tambahkan alert untuk menampilkan payload yang dikirim ---
+        alert("Mengirim request ke AI dengan payload:\n" + JSON.stringify(payload, null, 2))
+
+        const data = await getSkincareRecommendation(payload)
         setRecommendation(data)
       } catch (e) {
         setError(e.message)

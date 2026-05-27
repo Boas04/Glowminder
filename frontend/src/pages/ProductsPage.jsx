@@ -1,21 +1,29 @@
 // pages/ProductsPage.jsx
 import { useState } from 'react'
 import { useProducts } from '../hooks/useProducts'
+import { useCategories } from '../hooks/useCategories'
+import { useBrands } from '../hooks/useBrands'
 import ProductCard from '../components/features/ProductCard'
 import ProductModal from '../components/features/ProductModal'
-import { PRODUCT_CATEGORIES } from '../utils/mockData'
+import DataManagementModal from '../components/features/DataManagementModal'
 
 export default function ProductsPage() {
   const { products, loading, addProduct, updateProduct, removeProduct, classifyProduct } = useProducts()
-  const [modal,  setModal]  = useState(null)
-  const [filter, setFilter] = useState({ time: 'all', category: 'all', stock: 'all', search: '' })
+  const { categories } = useCategories()
+  const { brands } = useBrands()
+
+  const [modal,  setModal]  = useState(null) // null | 'add' | product object | 'manage_data'
+  const [filter, setFilter] = useState({ time: 'all', category_id: 'all', stock: 'all', search: '' })
 
   const filtered = products.filter(p => {
-    if (filter.time !== 'all' && !p.usage_time?.includes(filter.time)) return false
-    if (filter.category !== 'all' && p.category !== filter.category)  return false
+    if (filter.time !== 'all' && p.usage_time !== filter.time) return false
+    if (filter.category_id !== 'all' && String(p.category_id) !== String(filter.category_id)) return false
     if (filter.stock === 'in_stock' && !p.in_stock)  return false
     if (filter.stock === 'out'      && p.in_stock)   return false
-    if (filter.search && !`${p.name} ${p.brand}`.toLowerCase().includes(filter.search.toLowerCase())) return false
+    
+    // safe brand matching if we map brand id to name
+    const brandName = brands.find(b => b.id === p.brand_id)?.name || ''
+    if (filter.search && !`${p.name} ${brandName}`.toLowerCase().includes(filter.search.toLowerCase())) return false
     return true
   })
 
@@ -24,7 +32,7 @@ export default function ProductsPage() {
     else         await addProduct(form)
   }
 
-  const hasFilter = filter.time !== 'all' || filter.category !== 'all' || filter.stock !== 'all' || filter.search
+  const hasFilter = filter.time !== 'all' || filter.category_id !== 'all' || filter.stock !== 'all' || filter.search
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -38,9 +46,14 @@ export default function ProductsPage() {
             {products.length} produk tersimpan
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setModal('add')}>
-          ➕ Tambah Produk
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn-ghost" onClick={() => setModal('manage_data')}>
+            ⚙️ Kelola Master
+          </button>
+          <button className="btn-primary" onClick={() => setModal('add')}>
+            ➕ Tambah Produk
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -64,7 +77,7 @@ export default function ProductsPage() {
             <option value="all">Semua Waktu</option>
             <option value="morning">🌅 Pagi</option>
             <option value="night">🌙 Malam</option>
-            <option value="special">✨ Khusus</option>
+            <option value="special_treatment">✨ Khusus</option>
           </select>
         </div>
 
@@ -72,12 +85,12 @@ export default function ProductsPage() {
         <div className="select-wrapper" style={{ flex: '1 1 160px' }}>
           <select
             className="input"
-            value={filter.category}
-            onChange={e => setFilter({ ...filter, category: e.target.value })}
+            value={filter.category_id}
+            onChange={e => setFilter({ ...filter, category_id: e.target.value })}
           >
             <option value="all">Semua Kategori</option>
-            {PRODUCT_CATEGORIES.map(c => (
-              <option key={c.value} value={c.value}>{c.label}</option>
+            {categories.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
         </div>
@@ -98,7 +111,7 @@ export default function ProductsPage() {
         {hasFilter && (
           <button
             className="btn-ghost"
-            onClick={() => setFilter({ time: 'all', category: 'all', stock: 'all', search: '' })}
+            onClick={() => setFilter({ time: 'all', category_id: 'all', stock: 'all', search: '' })}
             style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
           >
             ✕ Reset
@@ -140,18 +153,26 @@ export default function ProductsPage() {
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
-          {filtered.map(p => (
-            <ProductCard
-              key={p.id} product={p}
-              onEdit={prod => setModal(prod)}
-              onDelete={removeProduct}
-              onClassify={classifyProduct}
-            />
-          ))}
+          {filtered.map(p => {
+             const pBrand = brands.find(b => b.id === p.brand_id)
+             const pCat = categories.find(c => c.id === p.category_id)
+             return (
+              <ProductCard
+                key={p.id} product={p} brand={pBrand} category={pCat}
+                onEdit={prod => setModal(prod)}
+                onDelete={removeProduct}
+                onClassify={classifyProduct}
+              />
+             )
+          })}
         </div>
       )}
 
-      {modal && (
+      {modal === 'manage_data' && (
+        <DataManagementModal onClose={() => setModal(null)} />
+      )}
+      
+      {modal && modal !== 'manage_data' && (
         <ProductModal
           product={modal === 'add' ? null : modal}
           onClose={() => setModal(null)}

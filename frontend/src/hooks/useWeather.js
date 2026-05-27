@@ -1,10 +1,9 @@
 // hooks/useWeather.js
 import { useState, useEffect } from 'react'
-import { fetchWeatherByCoords, fetchUVIndex, interpretWeather, getUserCoords } from '../services/weather'
+import { fetchWeatherFromBackend, interpretWeather, getUserCoords } from '../services/weather'
 import { MOCK_WEATHER } from '../utils/mockData'
 
-const USE_MOCK = !import.meta.env.VITE_OPENWEATHER_API_KEY ||
-                 import.meta.env.VITE_OPENWEATHER_API_KEY === 'your_openweathermap_api_key_here'
+const USE_MOCK = false
 
 export function useWeather() {
   const [weather, setWeather]           = useState(null)
@@ -25,34 +24,21 @@ export function useWeather() {
     const load = async () => {
       setLoading(true)
       try {
-        if (USE_MOCK) {
-          await new Promise(r => setTimeout(r, 700))
-          if (!alive) return
-          setWeather(MOCK_WEATHER)
-          setInterpret(interpretWeather({
-            main: { temp: MOCK_WEATHER.temp, humidity: MOCK_WEATHER.humidity },
-            weather: [{ main: MOCK_WEATHER.condition }]
-          }))
-        } else {
-          const [data, uvData] = await Promise.all([
-            fetchWeatherByCoords(coords.lat, coords.lon),
-            fetchUVIndex(coords.lat, coords.lon),
-          ])
-          if (!alive) return
-          const mapped = {
-            city: data.name,
-            temp: Math.round(data.main.temp),
-            feels_like: Math.round(data.main.feels_like),
-            humidity: data.main.humidity,
-            condition: data.weather[0].main,
-            description: data.weather[0].description,
-            icon: data.weather[0].icon,
-            wind_speed: data.wind.speed,
-            uv_index: uvData?.value ?? null,
-          }
-          setWeather(mapped)
-          setInterpret(interpretWeather(data))
+        const data = await fetchWeatherFromBackend(coords.lat, coords.lon)
+        if (!alive) return
+        const mapped = {
+          city: data.location_name || 'Lokasi',
+          temp: Math.round(data.temperature),
+          feels_like: Math.round(data.temperature),
+          humidity: data.humidity,
+          condition: data.weather_condition,
+          description: data.weather_condition,
+          icon: '01d', // default or mapped later
+          wind_speed: data.wind_speed,
+          uv_index: data.uv_index ?? null,
         }
+        setWeather(mapped)
+        setInterpret(interpretWeather(data))
       } catch (e) {
         if (!alive) return
         setError(e.message)

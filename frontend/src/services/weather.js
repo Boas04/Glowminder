@@ -1,23 +1,11 @@
 // services/weather.js
 // Geolocation → OpenWeatherMap (atau mock jika key tidak ada)
 
-const OWM_KEY  = import.meta.env.VITE_OPENWEATHER_API_KEY
-const OWM_BASE = 'https://api.openweathermap.org/data/2.5'
+import api from './api'
 
-export async function fetchWeatherByCoords(lat, lon) {
-  const res = await fetch(
-    `${OWM_BASE}/weather?lat=${lat}&lon=${lon}&appid=${OWM_KEY}&units=metric&lang=id`
-  )
-  if (!res.ok) throw new Error('Gagal mengambil data cuaca')
-  return res.json()
-}
-
-export async function fetchUVIndex(lat, lon) {
-  const res = await fetch(
-    `${OWM_BASE}/uvi?lat=${lat}&lon=${lon}&appid=${OWM_KEY}`
-  )
-  if (!res.ok) return { value: null }
-  return res.json()
+export async function fetchWeatherFromBackend(lat, lon) {
+  const res = await api.get(`/weather/current?lat=${lat}&lon=${lon}`)
+  return res.data.data
 }
 
 // Minta izin lokasi dari browser → return { lat, lon }
@@ -36,9 +24,9 @@ export function getUserCoords() {
 
 export function interpretWeather(weatherData) {
   if (!weatherData) return null
-  const temp      = weatherData.main?.temp
-  const humidity  = weatherData.main?.humidity
-  const condition = weatherData.weather?.[0]?.main?.toLowerCase()
+  const temp      = weatherData.temperature
+  const humidity  = weatherData.humidity
+  const condition = weatherData.weather_condition?.toLowerCase()
   const tips = []
   let skinCondition = 'normal'
   let urgency = 'low'

@@ -4,8 +4,10 @@ import { NavLink, Outlet } from 'react-router-dom'
 
 const NAV = [
   { to: '/dashboard', icon: '🏠', label: 'Dashboard' },
-  { to: '/products',  icon: '🧴', label: 'Produk Saya' },
+  { to: '/products', icon: '🧴', label: 'Produk Saya' },
   { to: '/reminders', icon: '🔔', label: 'Reminder' },
+  { to: '/categories', icon: '🏷️', label: 'Kategori' },
+  { to: '/brands', icon: '🏢', label: 'Brand' },
 ]
 
 export default function AppLayout() {

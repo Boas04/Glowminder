@@ -4,7 +4,7 @@ import { productAPI } from '../services/api'
 import { MOCK_PRODUCTS } from '../utils/mockData'
 import toast from 'react-hot-toast'
 
-const USE_MOCK = true // ← Ganti ke false saat backend siap
+const USE_MOCK = false
 
 export function useProducts() {
   const [products, setProducts] = useState([])
@@ -18,7 +18,7 @@ export function useProducts() {
         setProducts(MOCK_PRODUCTS)
       } else {
         const { data } = await productAPI.getAll()
-        setProducts(data.products || data)
+        setProducts(data.data || data)
       }
     } catch {
       toast.error('Gagal memuat produk')
@@ -38,9 +38,10 @@ export function useProducts() {
         return newProd
       }
       const { data } = await productAPI.create(productData)
-      setProducts((prev) => [data, ...prev])
+      const newData = data.data || data
+      setProducts((prev) => [newData, ...prev])
       toast.success('Produk berhasil ditambahkan! ✨')
-      return data
+      return newData
     } catch { return null }
   }
 
@@ -52,7 +53,8 @@ export function useProducts() {
         return true
       }
       const { data } = await productAPI.update(id, updates)
-      setProducts((prev) => prev.map((p) => p.id === id ? data : p))
+      const updatedData = data.data || data
+      setProducts((prev) => prev.map((p) => p.id === id ? updatedData : p))
       toast.success('Produk diperbarui')
       return true
     } catch { return false }

@@ -7,6 +7,8 @@ import AppLayout from './components/layout/AppLayout'
 import DashboardPage from './pages/DashboardPage'
 import ProductsPage from './pages/ProductsPage'
 import RemindersPage from './pages/RemindersPage'
+import CategoriesPage from './pages/CategoriesPage'
+import BrandsPage from './pages/BrandsPage'
 
 export default function App() {
   return (
@@ -34,9 +36,11 @@ export default function App() {
               <AppLayout />
             </ProtectedRoute>
           }>
-            <Route path="/dashboard"  element={<DashboardPage />} />
-            <Route path="/products"   element={<ProductsPage />} />
-            <Route path="/reminders"  element={<RemindersPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/reminders" element={<RemindersPage />} />
+            <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/brands" element={<BrandsPage />} />
           </Route>
           {/* Catch all */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

@@ -31,9 +31,22 @@ function AIRecommendationCard({ recommendation, loading, error }) {
     </div>
   )
 
-  // Tampilkan output dari API Railway
-  const text = recommendation?.reminder || recommendation?.message || recommendation?.recommendation
-    || (typeof recommendation === 'string' ? recommendation : JSON.stringify(recommendation))
+  console.log("=== AI RECOMMENDATION RESPONSE ===", recommendation)
+
+  let parsedRec = null
+  let fallbackText = ''
+
+  try {
+    const raw = recommendation?.reminder || recommendation?.message || recommendation?.recommendation || recommendation
+    if (typeof raw === 'string') {
+      // Sometimes it returns a string that contains JSON
+      parsedRec = JSON.parse(raw)
+    } else {
+      parsedRec = raw
+    }
+  } catch (e) {
+    fallbackText = typeof recommendation === 'string' ? recommendation : JSON.stringify(recommendation)
+  }
 
   return (
     <div className="card" style={{
@@ -53,13 +66,39 @@ function AIRecommendationCard({ recommendation, loading, error }) {
           boxShadow: '0 4px 12px rgba(232,64,113,0.25)',
         }}>🤖</div>
         <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <span style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontStyle: 'italic', fontWeight: 500, color: 'var(--pink-600)' }}>Rekomendasi Skincare Hari Ini</span>
             <span className="badge badge-pink" style={{ fontSize: '0.68rem' }}>✨ AI</span>
           </div>
-          <p style={{ fontSize: '0.875rem', color: 'var(--gray-700)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
-            {text}
-          </p>
+          
+          {parsedRec && parsedRec.rekomendasi_sistem ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ fontSize: '0.875rem', color: 'var(--gray-800)', lineHeight: 1.6 }}>
+                {parsedRec.rekomendasi_sistem.map((rec, i) => (
+                  <p key={i} style={{ margin: 0, marginBottom: 4 }}>{rec}</p>
+                ))}
+              </div>
+              
+              {parsedRec.prediksi_fungsi_skincare && parsedRec.prediksi_fungsi_skincare.length > 0 && (
+                <div>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--gray-500)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Fokus Skincare:
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {parsedRec.prediksi_fungsi_skincare.map((fungsi, idx) => (
+                      <span key={idx} className="badge badge-lavender" style={{ fontSize: '0.7rem' }}>
+                        🎯 {fungsi}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p style={{ fontSize: '0.875rem', color: 'var(--gray-700)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+              {fallbackText || JSON.stringify(parsedRec || recommendation)}
+            </p>
+          )}
         </div>
       </div>
     </div>
