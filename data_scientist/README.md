@@ -50,11 +50,18 @@ Kami melakukan uji hipotesis menggunakan **Chi-Square Kontingensi** untuk meliha
 
 ---
 
+## 📄 Laporan Teknis Lengkap
+Anda dapat membaca dan mengunduh laporan teknis komprehensif proyek GlowMinder dalam format PDF langsung melalui tautan berikut:
+👉 **[Unduh Laporan PDF GlowMinder](GlowMinder_Technical_Report.pdf)**
+
+---
+
 ## 💻 Struktur Repositori
 
 ```text
-├── app.py                           # Kode utama dashboard Streamlit
-├── requirements.txt                 # Daftar library Python yang dibutuhkan
-├── skincare_model_ready.csv         # Dataset final hasil Feature Engineering
-├── Data_Skincare.ipynb              # Notebook proses Wrangling, EDA, & A/B Testing
-└── README.md                        # Dokumentasi proyek
+├── app.py                           # Kode dashboard Streamlit
+├── requirements.txt                 # Daftar library untuk server
+├── skincare_model_ready.csv         # Dataset final
+├── Data_Skincare.ipynb              # File Google Colab kamu
+├── README.md                        # Teks perkenalan proyek
+└── GlowMinder_Technical_Report.pdf  # 📄 File Laporan Akhir Kamu!
