@@ -32,9 +32,16 @@ const getReminderHandler = async (req, res) => {
       data: aiResponse,
     });
   } catch (err) {
+    console.error("AI request failed", {
+      message: err.message,
+      status: err.response?.status,
+      data: err.response?.data,
+    });
+
     return res.status(502).json({
       success: false,
       message: "Failed to reach AI service",
+      details: err.response?.data || err.message,
     });
   }
 };

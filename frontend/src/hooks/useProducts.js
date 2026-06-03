@@ -20,7 +20,8 @@ export function useProducts() {
         const { data } = await productAPI.getAll()
         setProducts(data.data || data)
       }
-    } catch {
+    } catch (err) {
+      console.error("Gagal memuat produk:", err)
       toast.error('Gagal memuat produk')
     } finally {
       setLoading(false)
@@ -42,7 +43,10 @@ export function useProducts() {
       setProducts((prev) => [newData, ...prev])
       toast.success('Produk berhasil ditambahkan! ✨')
       return newData
-    } catch { return null }
+    } catch (err) {
+      console.error("Gagal menambah produk:", err)
+      return null
+    }
   }
 
   const updateProduct = async (id, updates) => {
@@ -57,7 +61,10 @@ export function useProducts() {
       setProducts((prev) => prev.map((p) => p.id === id ? updatedData : p))
       toast.success('Produk diperbarui')
       return true
-    } catch { return false }
+    } catch (err) {
+      console.error("Gagal memperbarui produk:", err)
+      return false
+    }
   }
 
   const removeProduct = async (id) => {
@@ -66,7 +73,10 @@ export function useProducts() {
       setProducts((prev) => prev.filter((p) => p.id !== id))
       toast.success('Produk dihapus')
       return true
-    } catch { return false }
+    } catch (err) {
+      console.error("Gagal menghapus produk:", err)
+      return false
+    }
   }
 
   const classifyProduct = async (id) => {
@@ -82,7 +92,8 @@ export function useProducts() {
       toast.dismiss()
       toast.success('Klasifikasi AI selesai ✨')
       return data
-    } catch {
+    } catch (err) {
+      console.error("Gagal mengklasifikasi produk:", err)
       toast.dismiss()
       return null
     }

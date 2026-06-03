@@ -2,7 +2,8 @@
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+const DEFAULT_DEV_API = 'http://localhost:5000/api'
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? DEFAULT_DEV_API : '/api')
 const RAILWAY_URL = 'https://glowminder-production.up.railway.app'
 
 const api = axios.create({
@@ -14,6 +15,16 @@ const api = axios.create({
 api.interceptors.response.use(
   (res) => res,
   (err) => {
+    console.error("API error:", {
+      message: err.message,
+      code: err.code,
+      method: err.config?.method,
+      url: err.config?.baseURL
+        ? `${err.config.baseURL}${err.config.url || ""}`
+        : err.config?.url,
+      status: err.response?.status,
+      data: err.response?.data,
+    })
     const msg = err.response?.data?.message || 'Terjadi kesalahan pada server'
     toast.error(msg)
     return Promise.reject(err)
