@@ -52,7 +52,7 @@ Kami melakukan uji hipotesis menggunakan **Chi-Square Kontingensi** untuk meliha
 
 ## 📄 Laporan Teknis Lengkap
 Anda dapat membaca dan mengunduh laporan teknis komprehensif proyek GlowMinder dalam format PDF langsung melalui tautan berikut:
-👉 **[Unduh Laporan PDF GlowMinder](GlowMinder_Technical_Report.pdf)**
+👉 **[Unduh Laporan PDF GlowMinder](LAPORAN TEKNIS PROYEK DATA SCIENCE_ GLOWMINDER.pdf)**
 
 ---
 
