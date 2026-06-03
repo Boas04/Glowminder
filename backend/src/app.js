@@ -7,6 +7,7 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const brandRoutes = require("./routes/brandRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const weatherRoutes = require("./routes/weatherRoutes");
+const reminderRoutes = require("./routes/reminderRoutes");
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/weather", weatherRoutes);
+app.use("/api/reminders", reminderRoutes);
 
 // Proxy AI Engine requests
 const aiEngineUrl =

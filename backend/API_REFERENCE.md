@@ -345,6 +345,110 @@ Response 200
   }
 }
 
+## Reminders
+
+Path prefix: /api/reminders
+
+GET /api/reminders
+
+Response 200
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "title": "Rutinitas Pagi",
+      "time": "07:00:00",
+      "days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      "active": true,
+      "created_at": "2026-06-03T08:00:00.000Z"
+    }
+  ]
+}
+
+POST /api/reminders
+
+Request
+{
+  "title": "Rutinitas Pagi",
+  "time": "07:00",
+  "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+}
+
+Response 201
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Rutinitas Pagi",
+    "time": "07:00:00",
+    "days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    "active": true,
+    "created_at": "2026-06-03T08:00:00.000Z"
+  }
+}
+
+PATCH /api/reminders/:id/toggle
+
+Response 200
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Rutinitas Pagi",
+    "time": "07:00:00",
+    "days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    "active": false,
+    "created_at": "2026-06-03T08:00:00.000Z"
+  }
+}
+
+DELETE /api/reminders/:id
+
+Response 200
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Rutinitas Pagi",
+    "time": "07:00:00",
+    "days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    "active": true,
+    "created_at": "2026-06-03T08:00:00.000Z"
+  }
+}
+
+POST /api/reminders/personalized
+
+Request
+{
+  "lat": -8.6705,
+  "lon": 115.2126
+}
+
+Response 200
+{
+  "success": true,
+  "data": {
+    "reminder_text": "Cuaca panas & lembap memicu minyak berlebih. Gunakan produk berikut: Facial Wash, Oil Control Serum.",
+    "products": [
+      {
+        "id": 2,
+        "name": "Facial Wash",
+        "category_name": "Sabun Cuci Muka"
+      }
+    ],
+    "ai": {
+      "status": "success",
+      "prediksi_fungsi_skincare": ["Daily Maintenance"]
+    },
+    "weather": {
+      "humidity": 78,
+      "uv_index": 5
+    }
+  }
+}
+
 ## AI Reminder
 
 Path prefix: /api/ai
@@ -362,7 +466,29 @@ Response 200
 {
   "success": true,
   "data": {
-    "reminder": "Gunakan sunscreen dan perbanyak hidrasi"
+    "status": "success",
+    "input_cuaca": {
+      "uv_index": 5.4,
+      "humidity": 78
+    },
+    "prediksi_fungsi_skincare": [
+      "Daily Maintenance",
+      "Sebum Controller"
+    ],
+    "rekomendasi_sistem": [
+      "Cuaca panas & lembap memicu minyak berlebih. Produk Sebum Controller ini wajib dipakai."
+    ],
+    "recommended_product": {
+      "id": 4,
+      "name": "Hydrating Cleanser",
+      "usage_time": "morning",
+      "description": "Gentle cleanser",
+      "ingredients": "glycerin, aloe",
+      "category_id": 2,
+      "brand_id": 5,
+      "created_at": "2026-05-26T13:20:11.000Z",
+      "category_name": "Moisturizer"
+    }
   }
 }
 

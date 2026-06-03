@@ -64,6 +64,7 @@ export const reminderAPI = {
   create: (data) => api.post('/reminders', data),
   remove: (id) => api.delete(`/reminders/${id}`),
   toggle: (id) => api.patch(`/reminders/${id}/toggle`),
+  personalized: (payload) => api.post('/reminders/personalized', payload),
 }
 
 // ─── AI – Skincare Recommendations ────────────────────
