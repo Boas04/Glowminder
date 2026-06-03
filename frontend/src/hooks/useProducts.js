@@ -103,7 +103,7 @@ export function useProducts() {
   const getProductsByTime = (time) => products.filter((p) => p.usage_time?.includes(time))
   const getMorningProducts = () => getProductsByTime('morning')
   const getNightProducts = () => getProductsByTime('night')
-  const getInStockProducts = () => products.filter((p) => p.in_stock)
+  const getInStockProducts = () => products.filter((p) => p.in_stock !== false)
 
   return {
     products, loading,

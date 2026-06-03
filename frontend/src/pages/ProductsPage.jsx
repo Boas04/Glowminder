@@ -16,10 +16,11 @@ export default function ProductsPage() {
   const [filter, setFilter] = useState({ time: 'all', category_id: 'all', stock: 'all', search: '' })
 
   const filtered = products.filter(p => {
+    const inStock = p.in_stock !== false
     if (filter.time !== 'all' && p.usage_time !== filter.time) return false
     if (filter.category_id !== 'all' && String(p.category_id) !== String(filter.category_id)) return false
-    if (filter.stock === 'in_stock' && !p.in_stock)  return false
-    if (filter.stock === 'out'      && p.in_stock)   return false
+    if (filter.stock === 'in_stock' && !inStock)  return false
+    if (filter.stock === 'out'      && inStock)   return false
     
     // safe brand matching if we map brand id to name
     const brandName = brands.find(b => b.id === p.brand_id)?.name || ''

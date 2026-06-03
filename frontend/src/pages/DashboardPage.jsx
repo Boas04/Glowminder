@@ -132,9 +132,10 @@ function AIRecommendationCard({ recommendation, loading, error }) {
 function TodayRoutineCard({ products }) {
   const hour      = new Date().getHours()
   const isMorning = hour >= 5 && hour < 12
-  const relevant  = products.filter(p =>
-    p.in_stock && p.usage_time?.includes(isMorning ? 'morning' : 'night')
-  )
+  const relevant  = products.filter((p) => {
+    const inStock = p.in_stock !== false
+    return inStock && p.usage_time?.includes(isMorning ? 'morning' : 'night')
+  })
 
   const categoryEmoji = { cleanser: '🫧', toner: '💧', serum: '✨', moisturizer: '🧴', sunscreen: '☀️', eye_cream: '👁️', mask: '🎭', exfoliator: '🔮', treatment: '💊' }
 

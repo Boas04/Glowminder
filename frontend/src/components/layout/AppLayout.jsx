@@ -85,24 +85,6 @@ export default function AppLayout() {
           ))}
         </nav>
 
-        {/* Bottom label */}
-        {!collapsed && (
-          <div style={{
-            padding: '0.75rem 1.25rem 1rem',
-            borderTop: '1px solid rgba(255,179,198,0.20)',
-          }}>
-            <div style={{
-              padding: '0.6rem 0.85rem',
-              background: 'linear-gradient(135deg, rgba(255,107,142,0.08), rgba(255,208,220,0.12))',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid rgba(255,179,198,0.25)',
-            }}>
-              <div style={{ fontSize: '0.72rem', color: 'var(--pink-400)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 2 }}>✨ Powered by AI</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)', lineHeight: 1.4 }}>Rekomendasi personal setiap hari</div>
-            </div>
-          </div>
-        )}
-
         {/* Toggle */}
         <button onClick={() => setCollapsed(!collapsed)} style={{
           position: 'absolute', top: '50%', right: -13,

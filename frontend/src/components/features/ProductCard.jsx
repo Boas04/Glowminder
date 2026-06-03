@@ -10,6 +10,7 @@ const CATEGORY_ICONS = {
 export default function ProductCard({ product, brand, category, onEdit, onDelete, onClassify }) {
   const [deleting,   setDeleting]   = useState(false)
   const [classifying,setClassifying]= useState(false)
+  const inStock = product.in_stock !== false
 
   // fallback to generic icon if unknown
   const catName = category?.name?.toLowerCase() || ''
@@ -58,11 +59,11 @@ export default function ProductCard({ product, brand, category, onEdit, onDelete
           <div style={{ fontSize: '0.75rem', color: 'var(--gray-400)', marginTop: 2 }}>{brandName}</div>
         </div>
         <span className="badge" style={{
-          background: product.in_stock ? '#d1fae5' : '#fee2e2',
-          color: product.in_stock ? '#065f46' : '#dc2626',
+          background: inStock ? '#d1fae5' : '#fee2e2',
+          color: inStock ? '#065f46' : '#dc2626',
           fontSize: '0.65rem', flexShrink: 0,
         }}>
-          {product.in_stock ? '● Tersedia' : '✗ Habis'}
+          {inStock ? '● Tersedia' : '✗ Habis'}
         </span>
       </div>
 
