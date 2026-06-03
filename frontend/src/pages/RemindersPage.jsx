@@ -1,15 +1,93 @@
 // pages/RemindersPage.jsx
-import { useState } from 'react'
-import { MOCK_REMINDERS } from '../utils/mockData'
+import { useEffect, useRef, useState } from 'react'
+import { reminderAPI } from '../services/api'
+import { getUserCoords } from '../services/weather'
 import toast from 'react-hot-toast'
 
 const DAYS = ['Sen','Sel','Rab','Kam','Jum','Sab','Min']
 const DAYS_EN = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+const DAY_INDEX = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 export default function RemindersPage() {
-  const [reminders, setReminders] = useState(MOCK_REMINDERS)
+  const [reminders, setReminders] = useState([])
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState({ title: '', time: '07:00', days: ['Mon','Tue','Wed','Thu','Fri'] })
+  const lastTriggeredRef = useRef(new Map())
+  const [coords, setCoords] = useState(null)
+
+  useEffect(() => {
+    getUserCoords().then(setCoords)
+  }, [])
+
+  useEffect(() => {
+    let alive = true
+
+    const loadReminders = async () => {
+      try {
+        const { data } = await reminderAPI.getAll()
+        if (!alive) return
+        setReminders(data.data || data)
+      } catch {
+        toast.error('Gagal memuat reminder')
+      }
+    }
+
+    loadReminders()
+    return () => { alive = false }
+  }, [])
+
+  useEffect(() => {
+    if (!('Notification' in window)) {
+      return undefined
+    }
+
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => {})
+    }
+
+    const checkReminders = async () => {
+      const now = new Date()
+      const dayKey = DAY_INDEX[now.getDay()]
+      const hours = String(now.getHours()).padStart(2, '0')
+      const minutes = String(now.getMinutes()).padStart(2, '0')
+      const timeKey = `${hours}:${minutes}`
+      const stamp = `${now.toISOString().slice(0, 10)} ${timeKey}`
+
+      for (const reminder of reminders) {
+        const reminderTime = reminder.time?.slice(0, 5) || reminder.time
+        if (!reminder.active) continue
+        if (!reminder.days.includes(dayKey)) continue
+        if (reminderTime !== timeKey) continue
+
+        const lastStamp = lastTriggeredRef.current.get(reminder.id)
+        if (lastStamp === stamp) continue
+
+        lastTriggeredRef.current.set(reminder.id, stamp)
+        let reminderText = `${reminder.title} (${reminderTime})`
+
+        try {
+          const payload = coords ? { lat: coords.lat, lon: coords.lon } : {}
+          const { data } = await reminderAPI.personalized(payload)
+          reminderText = data?.data?.reminder_text || reminderText
+        } catch {
+          // fallback to basic text
+        }
+
+        toast.success(`🔔 ${reminderText}`)
+
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('GlowMinder Reminder', {
+            body: reminderText,
+          })
+        }
+      }
+    }
+
+    checkReminders()
+    const timer = setInterval(checkReminders, 30000)
+
+    return () => clearInterval(timer)
+  }, [reminders])
 
   const toggleDay = (d) => {
     setForm((prev) => ({
@@ -18,28 +96,42 @@ export default function RemindersPage() {
     }))
   }
 
-  const toggleActive = (id) => {
-    setReminders((prev) =>
-      prev.map((r) => r.id === id ? { ...r, active: !r.active } : r)
-    )
+  const toggleActive = async (id) => {
+    try {
+      const { data } = await reminderAPI.toggle(id)
+      const updated = data.data || data
+      setReminders((prev) => prev.map((r) => (r.id === id ? updated : r)))
+    } catch {
+      toast.error('Gagal mengubah status reminder')
+    }
   }
 
-  const addReminder = (e) => {
+  const addReminder = async (e) => {
     e.preventDefault()
     if (!form.title.trim() || form.days.length === 0) {
       toast.error('Lengkapi form terlebih dahulu')
       return
     }
-    const newR = { id: `r${Date.now()}`, ...form, active: true }
-    setReminders((prev) => [...prev, newR])
-    setForm({ title: '', time: '07:00', days: ['Mon','Tue','Wed','Thu','Fri'] })
-    setShowAdd(false)
-    toast.success('Reminder ditambahkan! 🔔')
+    try {
+      const { data } = await reminderAPI.create(form)
+      const newReminder = data.data || data
+      setReminders((prev) => [newReminder, ...prev])
+      setForm({ title: '', time: '07:00', days: ['Mon','Tue','Wed','Thu','Fri'] })
+      setShowAdd(false)
+      toast.success('Reminder ditambahkan! 🔔')
+    } catch {
+      toast.error('Gagal menambahkan reminder')
+    }
   }
 
-  const deleteReminder = (id) => {
-    setReminders((prev) => prev.filter((r) => r.id !== id))
-    toast.success('Reminder dihapus')
+  const deleteReminder = async (id) => {
+    try {
+      await reminderAPI.remove(id)
+      setReminders((prev) => prev.filter((r) => r.id !== id))
+      toast.success('Reminder dihapus')
+    } catch {
+      toast.error('Gagal menghapus reminder')
+    }
   }
 
   return (
@@ -150,7 +242,7 @@ export default function RemindersPage() {
                   color: 'var(--pink-600)',
                   background: 'var(--pink-50)',
                   padding: '2px 8px', borderRadius: 6,
-                }}>⏰ {r.time}</span>
+                }}>⏰ {r.time?.slice(0, 5) || r.time}</span>
                 {r.days.map((d, di) => (
                   <span key={d} className="badge badge-gray" style={{ fontSize: '0.65rem' }}>
                     {DAYS[DAYS_EN.indexOf(d)] || d}

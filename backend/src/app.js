@@ -7,10 +7,24 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const brandRoutes = require("./routes/brandRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const weatherRoutes = require("./routes/weatherRoutes");
+const reminderRoutes = require("./routes/reminderRoutes");
 
 const app = express();
 
 app.use(express.json());
+
+// Allow dev frontend access (Vite default is http://localhost:3000)
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  return next();
+});
 
 // API Routes
 app.get("/health", (req, res) => {
@@ -26,12 +40,15 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/weather", weatherRoutes);
+app.use("/api/reminders", reminderRoutes);
 
 // Proxy AI Engine requests
+const aiEngineUrl =
+  process.env.AI_ENGINE_URL || "https://boas04-glowminder.hf.space";
 app.use(
   "/api/ai-engine",
   createProxyMiddleware({
-    target: "http://localhost:8000",
+    target: aiEngineUrl,
     changeOrigin: true,
     pathRewrite: {
       "^/api/ai-engine": "",
