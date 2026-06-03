@@ -7,7 +7,7 @@ export const MOCK_USER = {
   name: 'Sari Dewi',
   email: 'sari@example.com',
   avatar: null,
-  location: { city: 'Denpasar', lat: -8.6705, lon: 115.2126 },
+  location: { city: 'Tangerang', lat: -6.25, lon: 106.78 },
 }
 
 export const MOCK_PRODUCTS = [
@@ -64,16 +64,16 @@ export const MOCK_PRODUCTS = [
 ]
 
 export const MOCK_WEATHER = {
-  city: 'Denpasar',
-  temp: 31,
-  feels_like: 34,
-  humidity: 78,
-  uv_index: 7.2,
-  condition: 'Clear',
-  condition_id: 800,
-  icon: '01d',
-  wind_speed: 3.5,
-  description: 'cerah',
+  city: 'Tangerang',
+  temp: 30,
+  feels_like: 33,
+  humidity: 75,
+  uv_index: 6.8,
+  condition: 'Partly Cloudy',
+  condition_id: 802,
+  icon: '02d',
+  wind_speed: 4.2,
+  description: 'berawan',
 }
 
 export const MOCK_REMINDERS = [

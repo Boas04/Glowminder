@@ -12,13 +12,33 @@ export async function fetchWeatherFromBackend(lat, lon) {
 export function getUserCoords() {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
-      resolve({ lat: -8.6705, lon: 115.2126 }) // fallback Denpasar
+      console.warn('[Weather] Geolocation not available, using fallback')
+      resolve({ lat: -6.25, lon: 106.78 }) // fallback Tangerang
       return
     }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-      ()    => resolve({ lat: -8.6705, lon: 115.2126 })
-    )
+
+    const timeout = 8000 // 8 second timeout
+    const options = {
+      enableHighAccuracy: true, // force high accuracy
+      timeout,
+      maximumAge: 5 * 60 * 1000, // cache for 5 min
+    }
+
+    const onSuccess = (pos) => {
+      console.log('[Weather] Geolocation success:', pos.coords)
+      resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude })
+    }
+
+    const onError = (err) => {
+      console.warn('[Weather] Geolocation error:', err.code, err.message)
+      // Try once more with timeout relaxed if user denied
+      if (err.code === 1) { // PermissionDenied
+        console.log('[Weather] Permission denied, using fallback Tangerang')
+      }
+      resolve({ lat: -6.25, lon: 106.78 }) // fallback Tangerang
+    }
+
+    navigator.geolocation.getCurrentPosition(onSuccess, onError, options)
   })
 }
 

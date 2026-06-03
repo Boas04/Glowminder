@@ -1,13 +1,14 @@
 // components/layout/AppLayout.jsx
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
+import { Home, Droplet, Bell, Tag, Building2 } from 'lucide-react'
 
 const NAV = [
-  { to: '/dashboard', icon: '🏠', label: 'Dashboard' },
-  { to: '/products', icon: '🧴', label: 'Produk Saya' },
-  { to: '/reminders', icon: '🔔', label: 'Reminder' },
-  { to: '/categories', icon: '🏷️', label: 'Kategori' },
-  { to: '/brands', icon: '🏢', label: 'Brand' },
+  { to: '/dashboard', icon: Home, label: 'Dashboard' },
+  { to: '/products', icon: Droplet, label: 'Produk Saya' },
+  { to: '/reminders', icon: Bell, label: 'Reminder' },
+  { to: '/categories', icon: Tag, label: 'Kategori' },
+  { to: '/brands', icon: Building2, label: 'Brand' },
 ]
 
 export default function AppLayout() {
@@ -62,7 +63,7 @@ export default function AppLayout() {
 
         {/* Nav */}
         <nav style={{ flex: 1, padding: '1rem 0.6rem', display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {NAV.map(({ to, icon, label }) => (
+          {NAV.map(({ to, icon: IconComponent, label }) => (
             <NavLink key={to} to={to} style={({ isActive }) => ({
               display: 'flex', alignItems: 'center', gap: 10,
               padding: collapsed ? '0.7rem 0' : '0.7rem 0.9rem',
@@ -79,7 +80,7 @@ export default function AppLayout() {
               transition: 'var(--transition)',
               whiteSpace: 'nowrap',
             })}>
-              <span style={{ fontSize: 18, minWidth: 20, textAlign: 'center' }}>{icon}</span>
+              <IconComponent size={20} style={{ minWidth: 20 }} />
               {!collapsed && label}
             </NavLink>
           ))}

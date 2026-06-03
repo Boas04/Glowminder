@@ -1,5 +1,7 @@
 // components/features/WeatherCard.jsx
+import { useState } from 'react'
 import { useWeather } from '../../hooks/useWeather'
+import { RefreshCw, MapPin } from 'lucide-react'
 
 const weatherIcon = (condition, icon) => {
   if (!condition) return '🌤️'
@@ -15,6 +17,28 @@ const weatherIcon = (condition, icon) => {
 
 export default function WeatherCard() {
   const { weather, interpretation, loading, coords } = useWeather()
+  const [showLocationPrompt, setShowLocationPrompt] = useState(false)
+  const [customCoords, setCustomCoords] = useState('')
+
+  const handleRefreshLocation = () => {
+    // Request fresh geolocation
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          console.log('[Weather] Fresh location:', pos.coords)
+          // Trigger page reload to refetch weather with new coords
+          window.location.reload()
+        },
+        (err) => {
+          console.warn('[Weather] Refresh failed:', err.code)
+          alert('Tidak bisa mendapatkan lokasi. Pastikan GPS aktif dan berikan permission.')
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      )
+    } else {
+      alert('Geolocation tidak didukung browser ini')
+    }
+  }
 
   if (loading) return (
     <div className="card" style={{ padding: '1.5rem' }}>
@@ -43,7 +67,7 @@ export default function WeatherCard() {
         pointerEvents: 'none',
       }} />
 
-      {/* Location */}
+      {/* Location - with refresh button */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 14 }}>📍</span>
@@ -51,11 +75,33 @@ export default function WeatherCard() {
             {weather.city}
           </span>
         </div>
-        {coords && (
-          <span style={{ fontSize: '0.68rem', color: 'var(--gray-400)', fontFamily: 'monospace' }}>
-            {coords.lat.toFixed(2)}, {coords.lon.toFixed(2)}
-          </span>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button
+            onClick={handleRefreshLocation}
+            title="Perbarui lokasi dari GPS"
+            style={{
+              background: 'rgba(255,179,198,0.15)',
+              border: '1px solid rgba(255,179,198,0.3)',
+              borderRadius: '0.5rem',
+              padding: '0.35rem 0.5rem',
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 4,
+              fontSize: '0.7rem',
+              color: 'var(--pink-600)',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => e.target.style.background = 'rgba(255,179,198,0.25)'}
+            onMouseLeave={(e) => e.target.style.background = 'rgba(255,179,198,0.15)'}
+          >
+            <RefreshCw size={12} />
+            GPS
+          </button>
+          {coords && (
+            <span style={{ fontSize: '0.68rem', color: 'var(--gray-400)', fontFamily: 'monospace' }}>
+              {coords.lat.toFixed(2)}, {coords.lon.toFixed(2)}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Temp + icon */}
