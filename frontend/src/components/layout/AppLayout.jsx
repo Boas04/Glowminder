@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { Home, Droplet, Bell, Tag, Building2 } from 'lucide-react'
+// 1. Tambahin import logo ini di baris atas
+import logoImg from '../../assets/logo.png' 
 
 const NAV = [
   { to: '/dashboard', icon: Home, label: 'Dashboard' },
@@ -18,6 +20,7 @@ export default function AppLayout() {
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       {/* ── Sidebar ── */}
       <aside style={{
+        // ... (kodingan style aside lu biarin sama persis) ...
         width: collapsed ? 68 : 230,
         background: 'rgba(255,255,255,0.80)',
         backdropFilter: 'blur(20px)',
@@ -39,15 +42,24 @@ export default function AppLayout() {
           display: 'flex', alignItems: 'center', gap: 10,
           justifyContent: collapsed ? 'center' : 'flex-start',
         }}>
+          
+          {/* 2. Ubah bagian kotak logo ini */}
           <div style={{
             width: 36, height: 36, minWidth: 36,
-            background: 'var(--gradient-accent)',
             borderRadius: 12,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 18,
+            overflow: 'hidden', // Biar logonya melengkung ngikutin border
             boxShadow: '0 4px 12px rgba(232,64,113,0.30)',
             animation: 'float 3s ease-in-out infinite',
-          }}>🌸</div>
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: '#fff' 
+          }}>
+            <img 
+              src={logoImg} // Panggil variabel import dari atas
+              alt="GlowMinder Logo" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+            />
+          </div>
+
           {!collapsed && (
             <span style={{
               fontFamily: 'var(--font-display)',
