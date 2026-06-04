@@ -190,7 +190,7 @@ function ClassificationModal({ onClose }) {
 }
 
 /* ── AI Recommendation Banner ─────────────────────────────── */
-function AIRecommendationCard({ recommendation, loading, error }) {
+function AIRecommendationCard({ recommendation, loading, error, products = [], checkedItems = new Set() }) {
   if (loading) return (
     <div className="card" style={{ padding: '1.5rem', gridColumn: '1 / -1' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
@@ -258,52 +258,33 @@ function AIRecommendationCard({ recommendation, loading, error }) {
           </div>
 
           {normalizedRec && normalizedRec.rekomendasi_sistem ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ fontSize: '0.875rem', color: 'var(--gray-800)', lineHeight: 1.6 }}>
-                {normalizedRec.rekomendasi_sistem.map((rec, i) => (
-                  <p key={i} style={{ margin: 0, marginBottom: 4 }}>{rec}</p>
-                ))}
-              </div>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ fontSize: '0.875rem', color: 'var(--gray-800)', lineHeight: 1.6 }}>
+      {normalizedRec.rekomendasi_sistem.map((rec, i) => (
+        <p key={i} style={{ margin: 0, marginBottom: 4 }}>{rec}</p>
+      ))}
+    </div>
 
-              {recommendedProduct && (
-                <div>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--gray-500)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Rekomendasi Produk:
-                  </div>
-                  <div className="card" style={{ padding: '0.85rem 1rem', borderColor: 'rgba(255,179,198,0.35)', background: 'rgba(255,255,255,0.8)', marginBottom: 6 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                      <div>
-                        <div style={{ fontWeight: 600, color: 'var(--gray-800)', marginBottom: 4 }}>{recommendedProduct.name}</div>
-                        {/* ✅ FIX: "Kategori tidak diketahui" jadi CTA link */}
-                        {recommendedProduct.category_name ? (
-                          <div style={{ fontSize: '0.78rem', color: 'var(--gray-500)' }}>{recommendedProduct.category_name}</div>
-                        ) : (
-                          <a href="/products" style={{ fontSize: '0.78rem', color: 'var(--pink-500)', fontWeight: 600, textDecoration: 'none' }}>
-                            + Tambahkan Kategori
-                          </a>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => window.location.href = '/products'}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 5,
-                          padding: '0.4rem 0.85rem',
-                          border: '1.5px solid var(--pink-300, #f9a8d4)',
-                          borderRadius: 8, background: 'white',
-                          color: 'var(--pink-600, #db2777)',
-                          fontSize: '0.75rem', fontWeight: 600,
-                          cursor: 'pointer', whiteSpace: 'nowrap',
-                          transition: 'all 0.2s', flexShrink: 0,
-                        }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--pink-50, #fdf2f8)'; e.currentTarget.style.borderColor = 'var(--pink-400, #f472b6)' }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = 'var(--pink-300, #f9a8d4)' }}
-                      >
-                        Gunakan Sekarang <ChevronRight size={13} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+    {(() => {
+      const unchecked = products.filter(p => !checkedItems.has(p.id))
+      if (unchecked.length === 0) return (
+        <div style={{ fontSize: '0.83rem', color: 'var(--gray-400)', fontStyle: 'italic' }}>
+          ✅ Semua produk sudah digunakan hari ini!
+        </div>
+      )
+      const suggested = unchecked[0]
+      return (
+        <div>
+          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--gray-500)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Rekomendasi Produk:
+          </div>
+          <div className="card" style={{ padding: '0.85rem 1rem', borderColor: 'rgba(255,179,198,0.35)', background: 'rgba(255,255,255,0.8)' }}>
+            <div style={{ fontWeight: 600, color: 'var(--gray-800)', marginBottom: 4 }}>{suggested.name}</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--gray-500)' }}>{suggested.category || 'Skincare'}</div>
+          </div>
+        </div>
+      )
+    })()}
 
               {normalizedRec.prediksi_fungsi_skincare?.length > 0 && (
                 <div>
@@ -330,8 +311,7 @@ function AIRecommendationCard({ recommendation, loading, error }) {
 }
 
 /* ── Today Routine ─────────────────────────────────────────── */
-function TodayRoutineCard({ products }) {
-  const [checkedItems, setCheckedItems] = useState(new Set())
+function TodayRoutineCard({ products, checkedItems, toggleItem }) {
   const hour = new Date().getHours()
   const isMorning = hour >= 5 && hour < 12
   const relevant = products.filter((p) => {
@@ -345,13 +325,6 @@ function TodayRoutineCard({ products }) {
     sunscreen: <Sun size={18} />, eye_cream: <Package size={18} />,
     mask: <Package size={18} />, exfoliator: <Sparkles size={18} />,
     treatment: <Sparkles size={18} />,
-  }
-
-  const toggleItem = (id) => {
-    const updated = new Set(checkedItems)
-    if (updated.has(id)) updated.delete(id)
-    else updated.add(id)
-    setCheckedItems(updated)
   }
 
   return (
@@ -431,6 +404,22 @@ export default function DashboardPage() {
   const { products, getMorningProducts, getNightProducts, getInStockProducts } = useProducts()
   const { recommendation, loading: recLoading, error: recError } = useSkincareRecommendation({ weather, products })
   const [showClassifyModal, setShowClassifyModal] = useState(false)
+  const [checkedItems, setCheckedItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem('glowminder_checked')
+      return new Set(JSON.parse(saved) || [])
+    } catch { return new Set() }
+  })
+
+  const toggleItem = (id) => {
+    setCheckedItems(prev => {
+      const updated = new Set(prev)
+      if (updated.has(id)) updated.delete(id)
+      else updated.add(id)
+      localStorage.setItem('glowminder_checked', JSON.stringify([...updated]))
+      return updated
+    })
+  }
 
   const greet = () => {
     const h = new Date().getHours()
@@ -455,7 +444,7 @@ export default function DashboardPage() {
       </div>
 
       <div style={{ marginBottom: '1.5rem' }}>
-        <AIRecommendationCard recommendation={recommendation} loading={recLoading} error={recError} />
+        <AIRecommendationCard recommendation={recommendation} loading={recLoading} error={recError} products={products} checkedItems={checkedItems} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
@@ -487,7 +476,7 @@ export default function DashboardPage() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <TodayRoutineCard products={products} />
+          <TodayRoutineCard products={products} checkedItems={checkedItems} toggleItem={toggleItem} />
           <div className="card" style={{ padding: '1.5rem' }}>
             <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', fontStyle: 'italic', fontWeight: 500, color: 'var(--pink-700)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Zap size={18} style={{ color: 'var(--pink-500)' }} />Aksi Cepat
