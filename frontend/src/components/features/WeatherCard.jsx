@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useWeather } from '../../hooks/useWeather'
 import { RefreshCw, MapPin } from 'lucide-react'
 
-const weatherIcon = (condition, icon) => {
+const weatherIcon = (condition) => {
   if (!condition) return '🌤️'
   const c = condition.toLowerCase()
   if (c.includes('rain'))      return '🌧️'
@@ -16,23 +16,13 @@ const weatherIcon = (condition, icon) => {
 }
 
 export default function WeatherCard() {
-  const { weather, interpretation, loading, coords } = useWeather()
-  const [showLocationPrompt, setShowLocationPrompt] = useState(false)
-  const [customCoords, setCustomCoords] = useState('')
+  const { weather, interpretation, loading } = useWeather()
 
   const handleRefreshLocation = () => {
-    // Request fresh geolocation
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          console.log('[Weather] Fresh location:', pos.coords)
-          // Trigger page reload to refetch weather with new coords
-          window.location.reload()
-        },
-        (err) => {
-          console.warn('[Weather] Refresh failed:', err.code)
-          alert('Tidak bisa mendapatkan lokasi. Pastikan GPS aktif dan berikan permission.')
-        },
+        () => window.location.reload(),
+        () => alert('Tidak bisa mendapatkan lokasi. Pastikan GPS aktif dan berikan permission.'),
         { enableHighAccuracy: true, timeout: 8000 }
       )
     } else {
@@ -55,59 +45,49 @@ export default function WeatherCard() {
     <div className="card" style={{
       padding: '1.5rem',
       background: 'linear-gradient(145deg, rgba(255,240,245,0.95), rgba(255,255,255,0.90))',
-      overflow: 'hidden',
-      position: 'relative',
+      overflow: 'hidden', position: 'relative',
     }}>
       {/* Decorative blob */}
       <div style={{
         position: 'absolute', top: -20, right: -20,
         width: 100, height: 100,
         background: 'radial-gradient(circle, rgba(255,179,198,0.25) 0%, transparent 70%)',
-        borderRadius: '50%',
-        pointerEvents: 'none',
+        borderRadius: '50%', pointerEvents: 'none',
       }} />
 
-      {/* Location - with refresh button */}
+      {/* ✅ FIX: Sembunyikan koordinat GPS, tampilkan nama kota saja */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 14 }}>📍</span>
+          <MapPin size={14} style={{ color: 'var(--pink-500)' }} />
           <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--pink-500)', letterSpacing: '0.02em' }}>
             {weather.city}
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button
-            onClick={handleRefreshLocation}
-            title="Perbarui lokasi dari GPS"
-            style={{
-              background: 'rgba(255,179,198,0.15)',
-              border: '1px solid rgba(255,179,198,0.3)',
-              borderRadius: '0.5rem',
-              padding: '0.35rem 0.5rem',
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 4,
-              fontSize: '0.7rem',
-              color: 'var(--pink-600)',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => e.target.style.background = 'rgba(255,179,198,0.25)'}
-            onMouseLeave={(e) => e.target.style.background = 'rgba(255,179,198,0.15)'}
-          >
-            <RefreshCw size={12} />
-            GPS
-          </button>
-          {coords && (
-            <span style={{ fontSize: '0.68rem', color: 'var(--gray-400)', fontFamily: 'monospace' }}>
-              {coords.lat.toFixed(2)}, {coords.lon.toFixed(2)}
-            </span>
-          )}
-        </div>
+        <button
+          onClick={handleRefreshLocation}
+          title="Perbarui lokasi dari GPS"
+          style={{
+            background: 'rgba(255,179,198,0.15)',
+            border: '1px solid rgba(255,179,198,0.3)',
+            borderRadius: '0.5rem',
+            padding: '0.35rem 0.5rem',
+            cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 4,
+            fontSize: '0.7rem', color: 'var(--pink-600)',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,179,198,0.25)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,179,198,0.15)'}
+        >
+          <RefreshCw size={12} />
+          Perbarui
+        </button>
       </div>
 
       {/* Temp + icon */}
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, marginBottom: '1rem' }}>
         <div style={{ fontSize: 56, lineHeight: 1, animation: 'float 4s ease-in-out infinite' }}>
-          {weatherIcon(weather.condition, weather.icon)}
+          {weatherIcon(weather.condition)}
         </div>
         <div>
           <div style={{ fontSize: '2.8rem', fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--gray-900)', lineHeight: 1 }}>
@@ -127,10 +107,8 @@ export default function WeatherCard() {
             : { label: 'Angin', value: `${weather.wind_speed} m/s` },
         ].map(({ label, value }) => (
           <div key={label} style={{
-            textAlign: 'center',
-            padding: '0.5rem 0.25rem',
-            background: 'rgba(255,255,255,0.60)',
-            borderRadius: 'var(--radius-md)',
+            textAlign: 'center', padding: '0.5rem 0.25rem',
+            background: 'rgba(255,255,255,0.60)', borderRadius: 'var(--radius-md)',
             border: '1px solid rgba(255,179,198,0.20)',
           }}>
             <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--gray-800)' }}>{value}</div>
