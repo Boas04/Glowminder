@@ -254,3 +254,13 @@ body {
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);
 }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}

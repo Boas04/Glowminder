@@ -381,14 +381,14 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
         <StatCard icon={Sparkles} label="Produk Khusus" value={products.filter(p => p.usage_time === 'special_treatment').length} accent="#e85180" delay={0} />
         <StatCard icon={Check}    label="Stok Tersedia" value={getInStockProducts().length}  accent="#10b981" delay={0.05} />
         <StatCard icon={Sun}      label="Produk Pagi"   value={getMorningProducts().length}  accent="#fbbf24" delay={0.1} />
         <StatCard icon={Moon}     label="Produk Malam"  value={getNightProducts().length}    accent="#a855f7" delay={0.15} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 360px) 1fr', gap: '1.5rem', alignItems: 'start' }}>
+      <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 360px) 1fr', gap: '1.5rem', alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <WeatherCard />
           {interpretation?.urgency === 'high' && (
